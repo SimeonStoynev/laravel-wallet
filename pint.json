@@ -1,0 +1,28 @@
+{
+    "preset": "psr12",
+    "rules": {
+        "array_syntax": {
+            "syntax": "short"
+        },
+        "cast_spaces": true,
+        "concat_space": {
+            "spacing": "none"
+        },
+        "method_argument_space": {
+            "on_multiline": "ensure_fully_multiline"
+        },
+        "no_unused_imports": true,
+        "single_quote": true,
+        "trailing_comma_in_multiline": true,
+        "yoda_style": false
+    },
+    "exclude": [
+        "bootstrap/cache",
+        "bootstrap/autoload.php",
+        "node_modules",
+        "public/index.php",
+        "server.php",
+        "storage",
+        "vendor"
+    ]
+}

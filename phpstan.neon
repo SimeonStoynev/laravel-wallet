@@ -1,0 +1,26 @@
+includes:
+    - ./vendor/larastan/larastan/extension.neon
+
+parameters:
+
+    paths:
+        - app/
+        - config/
+        - database/
+        - resources/
+        - routes/
+        - tests/
+
+    # The level 9 is the highest level
+    level: 9
+
+    ignoreErrors:
+        - '#PHPDoc tag @var#'
+        
+    excludePaths:
+        - ./vendor/*
+        - ./bootstrap/cache/*
+        - ./storage/*
+        - ./node_modules/*
+
+    reportUnmatchedIgnoredErrors: false
