@@ -28,8 +28,52 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'role' => fake()->randomElement(['admin', 'merchant']),
+            'amount' => fake()->randomFloat(2, 0, 10000),
+            'description' => fake()->optional()->sentence(),
+            'version' => 1,
             'remember_token' => Str::random(10),
         ];
+    }
+
+    /**
+     * Indicate that the user should be an admin.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
+        ]);
+    }
+
+    /**
+     * Indicate that the user should be a merchant.
+     */
+    public function merchant(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'merchant',
+        ]);
+    }
+
+    /**
+     * Indicate that the user should have a specific balance.
+     */
+    public function withBalance(float $balance): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'amount' => $balance,
+        ]);
+    }
+
+    /**
+     * Indicate that the user should have no balance.
+     */
+    public function withoutBalance(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'amount' => 0.00,
+        ]);
     }
 
     /**
