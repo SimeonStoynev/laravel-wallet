@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -28,7 +29,7 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
-            'role' => fake()->randomElement(['admin', 'merchant']),
+            'role' => fake()->randomElement([User::ROLE_ADMIN, User::ROLE_MERCHANT]),
             'amount' => fake()->randomFloat(2, 0, 10000),
             'description' => fake()->optional()->sentence(),
             'version' => 1,
@@ -42,7 +43,7 @@ class UserFactory extends Factory
     public function admin(): static
     {
         return $this->state(fn (array $attributes) => [
-            'role' => 'admin',
+            'role' => User::ROLE_ADMIN,
         ]);
     }
 
@@ -52,7 +53,7 @@ class UserFactory extends Factory
     public function merchant(): static
     {
         return $this->state(fn (array $attributes) => [
-            'role' => 'merchant',
+            'role' => User::ROLE_MERCHANT,
         ]);
     }
 

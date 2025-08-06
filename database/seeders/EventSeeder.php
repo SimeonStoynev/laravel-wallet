@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Enums\EventType;
+use App\Enums\StatusChangeReason;
 use App\Models\Event;
 use App\Models\Order;
 use App\Models\Transaction;
@@ -32,7 +34,7 @@ class EventSeeder extends Seeder
                 ->withVersion(1)
                 ->occurredAt($user->created_at)
                 ->create([
-                    'event_type' => 'UserCreated',
+                    'event_type' => EventType::USER_CREATED->value,
                     'event_data' => [
                         'user_id' => $user->id,
                         'name' => $user->name,
@@ -57,7 +59,7 @@ class EventSeeder extends Seeder
                     ->withVersion($version)
                     ->occurredAt($transaction->created_at)
                     ->create([
-                        'event_type' => 'WalletBalanceChanged',
+                        'event_type' => EventType::WALLET_BALANCE_CHANGED->value,
                         'event_data' => [
                             'user_id' => $user->id,
                             'transaction_id' => $transaction->id,
@@ -88,7 +90,7 @@ class EventSeeder extends Seeder
                 ->withVersion($version)
                 ->occurredAt($order->created_at)
                 ->create([
-                    'event_type' => 'OrderCreated',
+                    'event_type' => EventType::ORDER_CREATED->value,
                     'event_data' => [
                         'order_id' => $order->id,
                         'user_id' => $order->user_id,
@@ -108,7 +110,7 @@ class EventSeeder extends Seeder
                     ->withVersion($version)
                     ->occurredAt($order->updated_at ?? $order->created_at->addMinutes(rand(5, 60)))
                     ->create([
-                        'event_type' => 'OrderStatusChanged',
+                        'event_type' => EventType::ORDER_STATUS_CHANGED->value,
                         'event_data' => [
                             'order_id' => $order->id,
                             'user_id' => $order->user_id,
@@ -129,7 +131,7 @@ class EventSeeder extends Seeder
                         ->withVersion($version)
                         ->occurredAt($order->updated_at ?? $order->created_at->addMinutes(rand(10, 120)))
                         ->create([
-                            'event_type' => 'OrderCompleted',
+                            'event_type' => EventType::ORDER_COMPLETED->value,
                             'event_data' => [
                                 'order_id' => $order->id,
                                 'user_id' => $order->user_id,
@@ -151,7 +153,7 @@ class EventSeeder extends Seeder
                 ->withVersion(1)
                 ->occurredAt($transaction->created_at)
                 ->create([
-                    'event_type' => 'TransactionCreated',
+                    'event_type' => EventType::TRANSACTION_CREATED->value,
                     'event_data' => [
                         'transaction_id' => $transaction->id,
                         'user_id' => $transaction->user_id,
@@ -177,7 +179,7 @@ class EventSeeder extends Seeder
                 ->withVersion(2)
                 ->occurredAt($transaction->created_at->addSecond())
                 ->create([
-                    'event_type' => 'BalanceUpdated',
+                    'event_type' => EventType::BALANCE_UPDATED->value,
                     'event_data' => [
                         'transaction_id' => $transaction->id,
                         'user_id' => $transaction->user_id,

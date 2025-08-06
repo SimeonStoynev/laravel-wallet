@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\EventType;
 use App\Models\Event;
 use App\Models\Order;
 use App\Models\Transaction;
@@ -49,10 +50,10 @@ class EventFactory extends Factory
             'aggregate_type' => User::class,
             'aggregate_id' => $userId,
             'event_type' => fake()->randomElement([
-                'WalletBalanceChanged',
-                'UserRoleChanged',
-                'UserCreated',
-                'UserUpdated',
+                EventType::WALLET_BALANCE_CHANGED->value,
+                EventType::USER_ROLE_CHANGED->value,
+                EventType::USER_CREATED->value,
+                EventType::USER_UPDATED->value,
             ]),
             'event_data' => [
                 'user_id' => $userId,
@@ -74,11 +75,11 @@ class EventFactory extends Factory
             'aggregate_type' => Order::class,
             'aggregate_id' => $orderId,
             'event_type' => fake()->randomElement([
-                'OrderCreated',
-                'OrderStatusChanged',
-                'OrderCompleted',
-                'OrderCancelled',
-                'OrderRefunded',
+                EventType::ORDER_CREATED->value,
+                EventType::ORDER_STATUS_CHANGED->value,
+                EventType::ORDER_COMPLETED->value,
+                EventType::ORDER_CANCELLED->value,
+                EventType::ORDER_REFUNDED->value,
             ]),
             'event_data' => [
                 'order_id' => $orderId,
@@ -100,8 +101,8 @@ class EventFactory extends Factory
             'aggregate_type' => Transaction::class,
             'aggregate_id' => $transactionId,
             'event_type' => fake()->randomElement([
-                'TransactionCreated',
-                'BalanceUpdated',
+                EventType::TRANSACTION_CREATED->value,
+                EventType::BALANCE_UPDATED->value,
             ]),
             'event_data' => [
                 'transaction_id' => $transactionId,
@@ -150,23 +151,9 @@ class EventFactory extends Factory
     private function getEventTypesForAggregate(string $aggregateType): array
     {
         return match ($aggregateType) {
-            User::class => [
-                'WalletBalanceChanged',
-                'UserRoleChanged',
-                'UserCreated',
-                'UserUpdated',
-            ],
-            Order::class => [
-                'OrderCreated',
-                'OrderStatusChanged',
-                'OrderCompleted',
-                'OrderCancelled',
-                'OrderRefunded',
-            ],
-            Transaction::class => [
-                'TransactionCreated',
-                'BalanceUpdated',
-            ],
+            User::class => array_map(fn($enum) => $enum->value, EventType::userEvents()),
+            Order::class => array_map(fn($enum) => $enum->value, EventType::orderEvents()),
+            Transaction::class => array_map(fn($enum) => $enum->value, EventType::transactionEvents()),
             default => ['GenericEvent'],
         };
     }
