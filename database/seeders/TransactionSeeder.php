@@ -29,21 +29,23 @@ class TransactionSeeder extends Seeder
             $admin = $admins->random();
 
             // Create a credit transaction for the completed order
-            Transaction::factory()
-                ->credit()
-                ->forUser($user)
-                ->createdBy($admin)
-                ->forOrder($order)
-                ->creditWithBalance(
-                    $user->getBalance(),
-                    (float) $order->amount
-                )
-                ->create([
-                    'description' => "Credit for completed order #{$order->id}",
-                ]);
+            if ($user) {
+                Transaction::factory()
+                    ->credit()
+                    ->forUser($user)
+                    ->createdBy($admin)
+                    ->forOrder($order)
+                    ->creditWithBalance(
+                        $user->getBalance(),
+                        (float) $order->amount
+                    )
+                    ->create([
+                        'description' => "Credit for completed order #{$order->id}",
+                    ]);
 
-            // Update user's balance after transaction
-            $user->increment('amount', $order->amount);
+                // Update user's balance after transaction
+                $user->increment('amount', (float) $order->amount);
+            }
         }
 
         // Create manual credit transactions (admin adding money)
@@ -92,20 +94,22 @@ class TransactionSeeder extends Seeder
         $refundedOrders = Order::refunded()->limit(5)->get();
         foreach ($refundedOrders as $order) {
             $user = $order->user;
-            $admin = $admins->random();
-            $currentBalance = $user->getBalance();
+            if ($user) {
+                $admin = $admins->random();
+                $currentBalance = $user->getBalance();
 
-            Transaction::factory()
-                ->debit()
-                ->forUser($user)
-                ->createdBy($admin)
-                ->forOrder($order)
-                ->debitWithBalance($currentBalance, (float) $order->amount)
-                ->create([
-                    'description' => "Refund debit for order #{$order->id}",
-                ]);
+                Transaction::factory()
+                    ->debit()
+                    ->forUser($user)
+                    ->createdBy($admin)
+                    ->forOrder($order)
+                    ->debitWithBalance($currentBalance, (float) $order->amount)
+                    ->create([
+                        'description' => "Refund debit for order #{$order->id}",
+                    ]);
 
-            $user->decrement('amount', $order->amount);
+                $user->decrement('amount', (float) $order->amount);
+            }
         }
 
         // Create some historical transactions with older dates

@@ -4,14 +4,20 @@ namespace App\Models;
 
 use App\Events\OrderCreated;
 use App\Events\OrderStatusChanged;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Database\Factories\OrderFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * @use HasFactory<OrderFactory>
+ */
 class Order extends Model
 {
+    /** @use HasFactory<OrderFactory> */
     use HasFactory;
     use SoftDeletes;
 
@@ -26,7 +32,7 @@ class Order extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         'user_id',
@@ -62,6 +68,8 @@ class Order extends Model
 
     /**
      * Get the user that owns the order.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
@@ -69,7 +77,9 @@ class Order extends Model
     }
 
     /**
-     * Get all transactions related to this order.
+     * Get all transactions for the order.
+     *
+     * @return MorphMany<Transaction, $this>
      */
     public function transactions(): MorphMany
     {
@@ -80,56 +90,79 @@ class Order extends Model
 
     /**
      * Scope to filter orders by status.
+     *
+     * @param Builder<Order> $query
+     * @param string $status
+     * @return Builder<Order>
      */
-    public function scopeByStatus($query, string $status)
+    public function scopeByStatus(Builder $query, string $status): Builder
     {
         return $query->where('status', $status);
     }
 
     /**
      * Scope to filter recent orders.
+     *
+     * @param Builder<Order> $query
+     * @return Builder<Order>
      */
-    public function scopeRecent($query)
+    public function scopeRecent(Builder $query): Builder
     {
         return $query->orderBy('created_at', 'desc');
     }
 
     /**
      * Scope to filter orders for a specific user.
+     *
+     * @param Builder<Order> $query
+     * @param int|string $userId
+     * @return Builder<Order>
      */
-    public function scopeForUser($query, $userId)
+    public function scopeForUser(Builder $query, int|string $userId): Builder
     {
         return $query->where('user_id', $userId);
     }
 
     /**
      * Scope to filter pending payment orders.
+     *
+     * @param Builder<Order> $query
+     * @return Builder<Order>
      */
-    public function scopePendingPayment($query)
+    public function scopePendingPayment(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_PENDING_PAYMENT);
     }
 
     /**
      * Scope to filter completed orders.
+     *
+     * @param Builder<Order> $query
+     * @return Builder<Order>
      */
-    public function scopeCompleted($query)
+    public function scopeCompleted(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_COMPLETED);
     }
 
     /**
      * Scope to filter cancelled orders.
+     *
+     * @param Builder<Order> $query
+     * @return Builder<Order>
      */
-    public function scopeCancelled($query)
+    public function scopeCancelled(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_CANCELLED);
     }
 
     /**
      * Scope to filter refunded orders.
+     *
+     * @param Builder<Order> $query
+     * @return Builder<Order>
      */
-    public function scopeRefunded($query)
+    public function scopeRefunded(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_REFUNDED);
     }
@@ -194,6 +227,8 @@ class Order extends Model
 
     /**
      * Get available status transitions.
+     *
+     * @return array<int, string>
      */
     public function getAvailableTransitions(): array
     {

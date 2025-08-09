@@ -23,6 +23,8 @@ enum StatusChangeReason: string
 
     /**
      * Get completion reasons.
+     *
+     * @return array<StatusChangeReason>
      */
     public static function completionReasons(): array
     {
@@ -35,6 +37,8 @@ enum StatusChangeReason: string
 
     /**
      * Get cancellation reasons.
+     *
+     * @return array<StatusChangeReason>
      */
     public static function cancellationReasons(): array
     {
@@ -47,6 +51,8 @@ enum StatusChangeReason: string
 
     /**
      * Get refund reasons.
+     *
+     * @return array<StatusChangeReason>
      */
     public static function refundReasons(): array
     {

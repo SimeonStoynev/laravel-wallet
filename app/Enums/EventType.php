@@ -26,6 +26,8 @@ enum EventType: string
 
     /**
      * Get all user-related event types.
+     *
+     * @return array<EventType>
      */
     public static function userEvents(): array
     {
@@ -39,6 +41,8 @@ enum EventType: string
 
     /**
      * Get all order-related event types.
+     *
+     * @return array<EventType>
      */
     public static function orderEvents(): array
     {
@@ -53,6 +57,8 @@ enum EventType: string
 
     /**
      * Get all transaction-related event types.
+     *
+     * @return array<EventType>
      */
     public static function transactionEvents(): array
     {
@@ -64,9 +70,11 @@ enum EventType: string
 
     /**
      * Get all event types as array of strings.
+     *
+     * @return array<string>
      */
     public static function all(): array
     {
-        return array_map(fn($case) => $case->value, self::cases());
+        return array_map(fn ($case) => $case->value, self::cases());
     }
 }

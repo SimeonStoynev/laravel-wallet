@@ -46,8 +46,11 @@ class TransactionFactory extends Factory
     public function credit(): static
     {
         return $this->state(function (array $attributes) {
-            $amount = $attributes['amount'] ?? fake()->randomFloat(2, 10, 500);
-            $balanceBefore = $attributes['balance_before'] ?? fake()->randomFloat(2, 0, 5000);
+            $amountValue = $attributes['amount'] ?? fake()->randomFloat(2, 10, 500);
+            $balanceBeforeValue = $attributes['balance_before'] ?? fake()->randomFloat(2, 0, 5000);
+
+            $amount = is_numeric($amountValue) ? (float) $amountValue : 0.0;
+            $balanceBefore = is_numeric($balanceBeforeValue) ? (float) $balanceBeforeValue : 0.0;
 
             return [
                 'type' => Transaction::TYPE_CREDIT,
@@ -63,8 +66,11 @@ class TransactionFactory extends Factory
     public function debit(): static
     {
         return $this->state(function (array $attributes) {
-            $amount = $attributes['amount'] ?? fake()->randomFloat(2, 10, 500);
-            $balanceBefore = $attributes['balance_before'] ?? fake()->randomFloat(2, 500, 5000); // Ensure sufficient balance
+            $amountValue = $attributes['amount'] ?? fake()->randomFloat(2, 10, 500);
+            $balanceBeforeValue = $attributes['balance_before'] ?? fake()->randomFloat(2, 500, 5000); // Ensure sufficient balance
+
+            $amount = is_numeric($amountValue) ? (float) $amountValue : 0.0;
+            $balanceBefore = is_numeric($balanceBeforeValue) ? (float) $balanceBeforeValue : 0.0;
 
             return [
                 'type' => Transaction::TYPE_DEBIT,
@@ -100,7 +106,8 @@ class TransactionFactory extends Factory
     public function withAmount(float $amount): static
     {
         return $this->state(function (array $attributes) use ($amount) {
-            $balanceBefore = $attributes['balance_before'] ?? fake()->randomFloat(2, 0, 5000);
+            $balanceBeforeValue = $attributes['balance_before'] ?? fake()->randomFloat(2, 0, 5000);
+            $balanceBefore = is_numeric($balanceBeforeValue) ? (float) $balanceBeforeValue : 0.0;
             $type = $attributes['type'] ?? Transaction::TYPE_CREDIT;
 
             $balanceAfter = $type === Transaction::TYPE_CREDIT

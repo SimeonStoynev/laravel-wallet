@@ -101,7 +101,7 @@ class OrderFactory extends Factory
     /**
      * Indicate that the order should have external reference.
      */
-    public function withExternalReference(string $reference = null): static
+    public function withExternalReference(?string $reference = null): static
     {
         return $this->state(fn (array $attributes) => [
             'external_reference' => $reference ?? fake()->uuid(),
@@ -110,6 +110,8 @@ class OrderFactory extends Factory
 
     /**
      * Indicate that the order should have specific metadata.
+     *
+     * @param array<string, mixed> $metadata
      */
     public function withMetadata(array $metadata): static
     {

@@ -3,13 +3,20 @@
 namespace App\Models;
 
 use App\Events\TransactionCreated;
+use Database\Factories\TransactionFactory;
+use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * @use HasFactory<TransactionFactory>
+ */
 class Transaction extends Model
 {
+    /** @use HasFactory<TransactionFactory> */
     use HasFactory;
 
     /**
@@ -21,7 +28,7 @@ class Transaction extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         'user_id',
@@ -58,13 +65,13 @@ class Transaction extends Model
     /**
      * Indicates that the transaction type is immutable after creation.
      */
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
 
         static::updating(function ($transaction) {
             if ($transaction->isDirty('type')) {
-                throw new \Exception('Transaction type cannot be changed after creation.');
+                throw new Exception('Transaction type cannot be changed after creation.');
             }
         });
     }
@@ -73,6 +80,8 @@ class Transaction extends Model
 
     /**
      * Get the user that owns the transaction.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
@@ -80,7 +89,9 @@ class Transaction extends Model
     }
 
     /**
-     * Get the user who created this transaction.
+     * Get the user that created the transaction.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function createdBy(): BelongsTo
     {
@@ -88,7 +99,9 @@ class Transaction extends Model
     }
 
     /**
-     * Get the owning referenceable model (Order/Manual).
+     * Get the reference model (polymorphic).
+     *
+     * @return MorphTo<Model, $this>
      */
     public function reference(): MorphTo
     {
@@ -99,48 +112,70 @@ class Transaction extends Model
 
     /**
      * Scope to filter credit transactions.
+     *
+     * @param Builder<Transaction> $query
+     * @return Builder<Transaction>
      */
-    public function scopeCredits($query)
+    public function scopeCredits(Builder $query): Builder
     {
         return $query->where('type', self::TYPE_CREDIT);
     }
 
     /**
      * Scope to filter debit transactions.
+     *
+     * @param Builder<Transaction> $query
+     * @return Builder<Transaction>
      */
-    public function scopeDebits($query)
+    public function scopeDebits(Builder $query): Builder
     {
         return $query->where('type', self::TYPE_DEBIT);
     }
 
     /**
      * Scope to filter transactions for a specific user.
+     *
+     * @param Builder<Transaction> $query
+     * @param int|string $userId
+     * @return Builder<Transaction>
      */
-    public function scopeForUser($query, $userId)
+    public function scopeForUser(Builder $query, int|string $userId): Builder
     {
         return $query->where('user_id', $userId);
     }
 
     /**
      * Scope to filter transactions created by a specific user.
+     *
+     * @param Builder<Transaction> $query
+     * @param int|string $userId
+     * @return Builder<Transaction>
      */
-    public function scopeCreatedBy($query, $userId)
+    public function scopeCreatedBy(Builder $query, int|string $userId): Builder
     {
         return $query->where('created_by', $userId);
     }
 
     /**
      * Scope to order transactions by creation date.
+     *
+     * @param Builder<Transaction> $query
+     * @return Builder<Transaction>
      */
-    public function scopeRecent($query)
+    public function scopeRecent(Builder $query): Builder
     {
         return $query->orderBy('created_at', 'desc');
     }
 
     /**
      * Scope to filter transactions by reference.
+     *
+     * @param Builder<Transaction> $query
+     * @param string $type
+     * @param int $id
+     * @return Builder<Transaction>
      */
-    public function scopeByReference($query, string $type, int $id)
+    public function scopeByReference(Builder $query, string $type, int $id): Builder
     {
         return $query->where('reference_type', $type)
                     ->where('reference_id', $id);
@@ -184,7 +219,7 @@ class Transaction extends Model
         // Generate description based on reference
         if ($this->reference_type === Order::class) {
             $action = $this->isCredit() ? 'Received funds' : 'Purchased funds';
-            return "{$action} #order_{$this->reference_id}";
+            return "$action #order_$this->reference_id";
         }
 
         return $this->isCredit() ? 'Credit transaction' : 'Debit transaction';

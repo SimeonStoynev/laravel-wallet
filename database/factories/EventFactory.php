@@ -21,6 +21,7 @@ class EventFactory extends Factory
      */
     public function definition(): array
     {
+        /** @var class-string<User|Order|Transaction> $aggregateType */
         $aggregateType = fake()->randomElement([User::class, Order::class, Transaction::class]);
         $eventTypes = $this->getEventTypesForAggregate($aggregateType);
 
@@ -42,7 +43,7 @@ class EventFactory extends Factory
     /**
      * Indicate that the event should be for a User aggregate.
      */
-    public function forUser(User $user = null): static
+    public function forUser(?User $user = null): static
     {
         $userId = $user ? $user->id : fake()->numberBetween(1, 1000);
 
@@ -67,7 +68,7 @@ class EventFactory extends Factory
     /**
      * Indicate that the event should be for an Order aggregate.
      */
-    public function forOrder(Order $order = null): static
+    public function forOrder(?Order $order = null): static
     {
         $orderId = $order ? $order->id : fake()->numberBetween(1, 1000);
 
@@ -93,7 +94,7 @@ class EventFactory extends Factory
     /**
      * Indicate that the event should be for a Transaction aggregate.
      */
-    public function forTransaction(Transaction $transaction = null): static
+    public function forTransaction(?Transaction $transaction = null): static
     {
         $transactionId = $transaction ? $transaction->id : fake()->numberBetween(1, 1000);
 
@@ -137,6 +138,8 @@ class EventFactory extends Factory
 
     /**
      * Indicate that the event should have specific metadata.
+     *
+     * @param array<string, mixed> $metadata
      */
     public function withMetadata(array $metadata): static
     {
@@ -147,19 +150,23 @@ class EventFactory extends Factory
 
     /**
      * Get event types for a specific aggregate type.
+     *
+     * @return array<int, string>
      */
     private function getEventTypesForAggregate(string $aggregateType): array
     {
         return match ($aggregateType) {
-            User::class => array_map(fn($enum) => $enum->value, EventType::userEvents()),
-            Order::class => array_map(fn($enum) => $enum->value, EventType::orderEvents()),
-            Transaction::class => array_map(fn($enum) => $enum->value, EventType::transactionEvents()),
+            User::class => array_map(fn ($enum) => $enum->value, EventType::userEvents()),
+            Order::class => array_map(fn ($enum) => $enum->value, EventType::orderEvents()),
+            Transaction::class => array_map(fn ($enum) => $enum->value, EventType::transactionEvents()),
             default => ['GenericEvent'],
         };
     }
 
     /**
      * Generate event data based on aggregate type.
+     *
+     * @return array<string, mixed>
      */
     private function generateEventData(string $aggregateType): array
     {

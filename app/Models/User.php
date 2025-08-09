@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory;
     use Notifiable;
     use SoftDeletes;
@@ -73,6 +75,8 @@ class User extends Authenticatable
 
     /**
      * Get all orders for the user.
+     *
+     * @return HasMany<Order, $this>
      */
     public function orders(): HasMany
     {
@@ -81,6 +85,8 @@ class User extends Authenticatable
 
     /**
      * Get all transactions for the user.
+     *
+     * @return HasMany<Transaction, $this>
      */
     public function transactions(): HasMany
     {
@@ -89,6 +95,8 @@ class User extends Authenticatable
 
     /**
      * Get all transactions created by this user.
+     *
+     * @return HasMany<Transaction, $this>
      */
     public function createdTransactions(): HasMany
     {
@@ -99,24 +107,33 @@ class User extends Authenticatable
 
     /**
      * Scope to filter admin users.
+     *
+     * @param Builder<User> $query
+     * @return Builder<User>
      */
-    public function scopeAdmin($query)
+    public function scopeAdmin(Builder $query): Builder
     {
         return $query->where('role', self::ROLE_ADMIN);
     }
 
     /**
      * Scope to filter merchant users.
+     *
+     * @param Builder<User> $query
+     * @return Builder<User>
      */
-    public function scopeMerchant($query)
+    public function scopeMerchant(Builder $query): Builder
     {
         return $query->where('role', self::ROLE_MERCHANT);
     }
 
     /**
      * Scope to filter users with balance.
+     *
+     * @param Builder<User> $query
+     * @return Builder<User>
      */
-    public function scopeWithBalance($query)
+    public function scopeWithBalance(Builder $query): Builder
     {
         return $query->where('amount', '>', 0);
     }

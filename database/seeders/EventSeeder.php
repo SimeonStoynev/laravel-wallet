@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Enums\EventType;
-use App\Enums\StatusChangeReason;
 use App\Models\Event;
 use App\Models\Order;
 use App\Models\Transaction;
@@ -32,7 +31,7 @@ class EventSeeder extends Seeder
             Event::factory()
                 ->forUser($user)
                 ->withVersion(1)
-                ->occurredAt($user->created_at)
+                ->occurredAt(($user->created_at ?? now())->addMinutes(5))
                 ->create([
                     'event_type' => EventType::USER_CREATED->value,
                     'event_data' => [
@@ -57,7 +56,7 @@ class EventSeeder extends Seeder
                 Event::factory()
                     ->forUser($user)
                     ->withVersion($version)
-                    ->occurredAt($transaction->created_at)
+                    ->occurredAt($transaction->created_at ?? now())
                     ->create([
                         'event_type' => EventType::WALLET_BALANCE_CHANGED->value,
                         'event_data' => [
@@ -88,7 +87,7 @@ class EventSeeder extends Seeder
             Event::factory()
                 ->forOrder($order)
                 ->withVersion($version)
-                ->occurredAt($order->created_at)
+                ->occurredAt($order->created_at ?? now())
                 ->create([
                     'event_type' => EventType::ORDER_CREATED->value,
                     'event_data' => [
@@ -108,7 +107,7 @@ class EventSeeder extends Seeder
                 Event::factory()
                     ->forOrder($order)
                     ->withVersion($version)
-                    ->occurredAt($order->updated_at ?? $order->created_at->addMinutes(rand(5, 60)))
+                    ->occurredAt($order->updated_at ?? ($order->created_at ?? now())->addMinutes(rand(5, 60)))
                     ->create([
                         'event_type' => EventType::ORDER_STATUS_CHANGED->value,
                         'event_data' => [
@@ -129,7 +128,7 @@ class EventSeeder extends Seeder
                     Event::factory()
                         ->forOrder($order)
                         ->withVersion($version)
-                        ->occurredAt($order->updated_at ?? $order->created_at->addMinutes(rand(10, 120)))
+                        ->occurredAt($order->updated_at ?? ($order->created_at ?? now())->addMinutes(rand(10, 120)))
                         ->create([
                             'event_type' => EventType::ORDER_COMPLETED->value,
                             'event_data' => [
@@ -151,7 +150,7 @@ class EventSeeder extends Seeder
             Event::factory()
                 ->forTransaction($transaction)
                 ->withVersion(1)
-                ->occurredAt($transaction->created_at)
+                ->occurredAt($transaction->created_at ?? now())
                 ->create([
                     'event_type' => EventType::TRANSACTION_CREATED->value,
                     'event_data' => [
@@ -174,10 +173,11 @@ class EventSeeder extends Seeder
                 ]);
 
             // Balance update event
+            $eventTime = ($transaction->created_at ?? now())->addSecond();
             Event::factory()
                 ->forTransaction($transaction)
                 ->withVersion(2)
-                ->occurredAt($transaction->created_at->addSecond())
+                ->occurredAt($eventTime)
                 ->create([
                     'event_type' => EventType::BALANCE_UPDATED->value,
                     'event_data' => [
@@ -235,11 +235,13 @@ class EventSeeder extends Seeder
      */
     private function getStatusChangeReason(string $status): string
     {
-        return match ($status) {
+        $reason = match ($status) {
             'completed' => fake()->randomElement(['payment_received', 'manual_approval', 'automatic_processing']),
             'cancelled' => fake()->randomElement(['user_request', 'payment_failed', 'fraud_detection']),
             'refunded' => fake()->randomElement(['user_request', 'dispute_resolution', 'error_correction']),
             default => 'system_update',
         };
+
+        return is_string($reason) ? $reason : 'system_update';
     }
 }
