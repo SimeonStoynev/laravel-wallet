@@ -1,0 +1,64 @@
+<?php
+
+namespace App\Http\Requests\Customer;
+
+use Illuminate\Foundation\Http\FormRequest;
+use App\Services\TransactionService;
+
+class TransferMoneyRequest extends FormRequest
+{
+    protected TransactionService $transactionService;
+
+    public function __construct(TransactionService $transactionService)
+    {
+        parent::__construct();
+        $this->transactionService = $transactionService;
+    }
+
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return auth()->check();
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        $userId = auth()->id();
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $maxAmount = $this->transactionService->calculateUserBalance($user);
+
+        return [
+            'recipient_id' => 'required|exists:users,id|different:'.$userId,
+            'amount' => 'required|numeric|min:0.01|max:'.$maxAmount,
+            'description' => 'required|string|max:255',
+        ];
+    }
+
+    /**
+     * Get custom error messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'recipient_id.required' => 'Please select a recipient.',
+            'recipient_id.exists' => 'Selected recipient does not exist.',
+            'recipient_id.different' => 'You cannot transfer money to yourself.',
+            'amount.required' => 'Transfer amount is required.',
+            'amount.numeric' => 'Amount must be a valid number.',
+            'amount.min' => 'Transfer amount must be at least 0.01.',
+            'amount.max' => 'Insufficient balance for this transfer.',
+            'description.required' => 'Please provide a description for this transfer.',
+            'description.max' => 'Description cannot exceed 255 characters.',
+        ];
+    }
+}
