@@ -26,7 +26,7 @@ class StoreUserRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:admin,customer',
+            'role' => 'sometimes|in:admin,merchant',
         ];
     }
 
@@ -42,7 +42,7 @@ class StoreUserRequest extends FormRequest
             'email.unique' => 'This email address is already registered.',
             'password.min' => 'Password must be at least 8 characters long.',
             'password.confirmed' => 'Password confirmation does not match.',
-            'role.in' => 'Role must be either admin or customer.',
+            'role.in' => 'Role must be either admin or merchant.',
         ];
     }
 }

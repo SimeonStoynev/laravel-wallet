@@ -40,6 +40,7 @@ class Transaction extends Model
         'reference_id',
         'balance_before',
         'balance_after',
+        'metadata',
     ];
 
     /**
@@ -51,6 +52,7 @@ class Transaction extends Model
         'amount' => 'decimal:2',
         'balance_before' => 'decimal:2',
         'balance_after' => 'decimal:2',
+        'metadata' => 'array',
     ];
 
     /**

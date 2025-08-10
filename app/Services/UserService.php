@@ -48,7 +48,7 @@ class UserService
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
-                'role' => $data['role'] ?? 'customer',
+                'role' => $data['role'] ?? 'merchant',
                 'amount' => 0,
             ]);
 

@@ -33,7 +33,7 @@ class OrderController extends Controller
             $search = $request->get('search');
             $query = is_string($search) ? $search : '';
             // If your service supports user-scoped search, replace with that method.
-            $orders = $this->orderService->searchOrders($query);
+            $orders = $this->orderService->searchOrders($query, $user);
         } else {
             $perPage = $request->get('per_page', 15);
             $orders = $this->orderService->getUserOrders($user, is_numeric($perPage) ? (int) $perPage : 15);
@@ -90,7 +90,7 @@ class OrderController extends Controller
                 'description' => $description,
                 'metadata' => [
                     'payment_method' => $paymentMethod,
-                    'created_by' => 'customer',
+                    'created_by' => 'merchant',
                 ],
             ];
             $user = auth()->user();
@@ -190,7 +190,7 @@ class OrderController extends Controller
 
             return redirect()->route('customer.orders.show', $order)
                 ->with('success', 'Payment successful! Money has been added to your wallet.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if (request()->wantsJson()) {
                 return response()->json(['error' => $e->getMessage()], 400);
             }

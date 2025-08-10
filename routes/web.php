@@ -7,7 +7,9 @@ use App\Http\Controllers\Customer\TransactionController;
 use App\Http\Controllers\Customer\OrderController as CustomerOrderController;
 
 Route::get('/', function () {
-    return view('welcome');
+    /** @var view-string $view */
+    $view = 'react';
+    return view($view);
 });
 
 // Authentication routes (Laravel Breeze/Jetstream should be installed)
@@ -33,15 +35,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('orders/{order}/refund', [AdminOrderController::class, 'refund'])->name('orders.refund');
 });
 
-// Customer Routes
-Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
-    // Dashboard
-    Route::get('/dashboard', function () {
-        /** @var view-string $view */
-        $view = 'customer.dashboard';
-        return view($view);
-    })->name('dashboard');
-
+// Wallet routes (merchant access only)
+Route::middleware(['auth', 'role:merchant'])->prefix('customer')->name('customer.')->group(function () {
     // Transactions
     Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('transactions/transfer', [TransactionController::class, 'showTransferForm'])->name('transactions.transfer-form');
@@ -54,8 +49,24 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::post('orders/{order}/simulate-payment', [CustomerOrderController::class, 'simulatePayment'])->name('orders.simulate-payment');
 });
 
+// Merchant Routes
+Route::middleware(['auth', 'role:merchant'])->prefix('merchant')->name('merchant.')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', function () {
+        /** @var view-string $view */
+        $view = 'merchant.dashboard';
+        return view($view);
+    })->name('dashboard');
+});
+
 // Redirect authenticated users to their respective dashboards
 Route::middleware('auth')->get('/dashboard', function () {
-    $role = auth()->user()->role ?? 'customer';
-    return redirect()->route($role.'.dashboard');
+    $role = auth()->user()->role ?? 'merchant';
+    // Normalize/Map roles to existing dashboard routes
+    $map = [
+        'admin'    => 'admin',
+        'merchant' => 'merchant',
+    ];
+    $target = $map[$role] ?? 'merchant';
+    return redirect()->route($target.'.dashboard');
 })->name('dashboard');

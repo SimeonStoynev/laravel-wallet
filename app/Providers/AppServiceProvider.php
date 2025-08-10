@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,6 +21,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Use Bootstrap pagination views (Bootstrap 4)
+        if (method_exists(Paginator::class, 'useBootstrapFour')) {
+            Paginator::useBootstrapFour();
+        } elseif (method_exists(Paginator::class, 'useBootstrap')) {
+            // Fallback for older/newer Laravel versions
+            Paginator::useBootstrap();
+        }
     }
 }

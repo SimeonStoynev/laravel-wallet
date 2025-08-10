@@ -28,7 +28,7 @@ class UpdateUserRequest extends FormRequest
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:users,email,'.$userId,
             'password' => 'sometimes|string|min:8|confirmed',
-            'role' => 'sometimes|in:admin,customer',
+            'role' => 'sometimes|in:admin,merchant',
         ];
     }
 

@@ -25,7 +25,7 @@ class CreateOrderRequest extends FormRequest
             'amount' => 'required|numeric|min:0.01|max:10000',
             'title' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:500',
-            'payment_method' => 'nullable|string|in:card,bank_transfer,paypal',
+            'payment_method' => 'nullable|string|in:manual,card,bank',
         ];
     }
 

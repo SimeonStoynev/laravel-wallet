@@ -19,7 +19,7 @@ class CheckRole
             return redirect()->route('login');
         }
 
-        $userRole = auth()->user()->role ?? 'customer';
+        $userRole = auth()->user()->role ?? 'merchant';
 
         if (!in_array($userRole, $roles)) {
             abort(403, 'Unauthorized access.');

@@ -68,7 +68,7 @@ class UserController extends Controller
             'name' => isset($validated['name']) && is_string($validated['name']) ? $validated['name'] : '',
             'email' => isset($validated['email']) && is_string($validated['email']) ? $validated['email'] : '',
             'password' => isset($validated['password']) && is_string($validated['password']) ? $validated['password'] : '',
-            'role' => isset($validated['role']) && is_string($validated['role']) ? $validated['role'] : 'customer',
+            'role' => isset($validated['role']) && is_string($validated['role']) ? $validated['role'] : 'merchant',
         ];
         $user = $this->userService->createUser($data);
 

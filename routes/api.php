@@ -32,8 +32,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('orders/{order}/refund', [AdminOrderController::class, 'refund'])->name('orders.refund');
     });
 
-    // Customer API Routes
-    Route::middleware('role:customer')->prefix('customer')->name('api.customer.')->group(function () {
+    // Wallet API Routes (merchant access only)
+    Route::middleware('role:merchant')->prefix('customer')->name('api.customer.')->group(function () {
         // Transactions
         Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
         Route::post('transactions/transfer', [TransactionController::class, 'transfer'])->name('transactions.transfer');
