@@ -8,12 +8,20 @@ use Illuminate\Broadcasting\PrivateChannel;
 class OrderCompleted extends WalletEvent
 {
     /**
+     * Public property for test compatibility
+     */
+    public Order $order;
+
+    /**
      * Create a new event instance.
      *
      * @param array<string, mixed> $metadata
      */
     public function __construct(Order $order, array $metadata = [])
     {
+        // Expose order instance for direct access in tests
+        $this->order = $order;
+
         $eventData = [
             'order_id' => $order->id,
             'user_id' => $order->user_id,

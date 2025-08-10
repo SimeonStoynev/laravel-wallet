@@ -8,6 +8,13 @@ use Illuminate\Broadcasting\PrivateChannel;
 class OrderStatusChanged extends WalletEvent
 {
     /**
+     * Backwards-compatible public properties expected by tests
+     */
+    public Order $order;
+    public string $previousStatus;
+    public string $newStatus;
+
+    /**
      * Create a new event instance.
      *
      * @param array<string, mixed> $metadata
@@ -18,6 +25,11 @@ class OrderStatusChanged extends WalletEvent
         string $newStatus,
         array $metadata = []
     ) {
+        // Set public properties for direct test access
+        $this->order = $order;
+        $this->previousStatus = $previousStatus;
+        $this->newStatus = $newStatus;
+
         $eventData = [
             'order_id' => $order->id,
             'user_id' => $order->user_id,

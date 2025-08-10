@@ -22,6 +22,8 @@ class MoneyTransferred
      * @var User
      */
     public User $sender;
+    // Alias for test compatibility
+    public User $fromUser;
 
     /**
      * The recipient user instance.
@@ -29,6 +31,8 @@ class MoneyTransferred
      * @var User
      */
     public User $recipient;
+    // Alias for test compatibility
+    public User $toUser;
 
     /**
      * The debit transaction instance.
@@ -62,7 +66,9 @@ class MoneyTransferred
         float $amount
     ) {
         $this->sender = $sender;
+        $this->fromUser = $sender;
         $this->recipient = $recipient;
+        $this->toUser = $recipient;
         $this->debitTransaction = $debitTransaction;
         $this->creditTransaction = $creditTransaction;
         $this->amount = $amount;

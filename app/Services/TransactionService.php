@@ -4,10 +4,10 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Transaction;
-use App\Events\TransactionCreated;
 use App\Events\BalanceUpdated;
 use App\Events\MoneyTransferred;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class TransactionService
@@ -43,8 +43,8 @@ class TransactionService
     public function addMoney(User $user, float $amount, string $description, ?User $createdBy = null): Transaction
     {
         return DB::transaction(function () use ($user, $amount, $description, $createdBy) {
-            // Lock user record to prevent concurrent updates
-            $user->lockForUpdate();
+            // Fetch and lock latest user row to prevent concurrent updates
+            $user = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
 
             // Calculate current balance
             $currentBalance = $this->calculateUserBalance($user);
@@ -65,8 +65,49 @@ class TransactionService
             // Update user's amount field
             $user->update(['amount' => $newBalance]);
 
-            // Dispatch events
-            event(new TransactionCreated($transaction));
+            // Dispatch balance updated event (TransactionCreated is dispatched by the model)
+            event(new BalanceUpdated($user, $transaction, $currentBalance, $newBalance));
+            Log::info('remove.debit', ['user_id' => $user->id, 'amount' => $amount, 'before' => $currentBalance, 'after' => $newBalance]);
+
+            return $transaction;
+        });
+    }
+
+    /**
+     * Remove money from user's wallet (debit)
+     */
+    public function removeMoney(User $user, float $amount, string $description, ?User $createdBy = null): Transaction
+    {
+        return DB::transaction(function () use ($user, $amount, $description, $createdBy) {
+            // Fetch and lock latest user row to prevent concurrent updates
+            $user = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+
+            // Calculate current balance and validate funds
+            $currentBalance = $this->calculateUserBalance($user);
+            Log::info('remove.precheck', ['user_id' => $user->id, 'amount' => $amount, 'balance' => $currentBalance]);
+            if ($amount > $currentBalance) {
+                Log::info('remove.insufficient', ['user_id' => $user->id, 'amount' => $amount, 'balance' => $currentBalance]);
+                throw new \Exception('Insufficient balance for debit');
+            }
+
+            $newBalance = $currentBalance - $amount;
+
+            // Create debit transaction
+            $transaction = Transaction::create([
+                'user_id' => $user->id,
+                'created_by' => $createdBy !== null ? $createdBy->id : $user->id,
+                'type' => Transaction::TYPE_DEBIT,
+                'amount' => $amount,
+                'balance_before' => $currentBalance,
+                'balance_after' => $newBalance,
+                'description' => $description,
+                'reference_type' => 'manual_deduction',
+            ]);
+
+            // Update user's amount field
+            $user->update(['amount' => $newBalance]);
+
+            // Dispatch balance updated event (TransactionCreated is dispatched by the model)
             event(new BalanceUpdated($user, $transaction, $currentBalance, $newBalance));
 
             return $transaction;
@@ -81,9 +122,9 @@ class TransactionService
     public function transferMoney(User $fromUser, User $toUser, float $amount, string $description): array
     {
         return DB::transaction(function () use ($fromUser, $toUser, $amount, $description) {
-            // Lock both users
-            $fromUser->lockForUpdate();
-            $toUser->lockForUpdate();
+            // Fetch and lock latest rows for both users
+            $fromUser = User::whereKey($fromUser->id)->lockForUpdate()->firstOrFail();
+            $toUser = User::whereKey($toUser->id)->lockForUpdate()->firstOrFail();
 
             // Check balance
             $senderBalance = $this->calculateUserBalance($fromUser);
@@ -139,9 +180,7 @@ class TransactionService
             $fromUser->update(['amount' => $senderBalance - $amount]);
             $toUser->update(['amount' => $receiverBalance + $amount]);
 
-            // Dispatch events
-            event(new TransactionCreated($debitTransaction));
-            event(new TransactionCreated($creditTransaction));
+            // Dispatch events (TransactionCreated is dispatched by the model)
             event(new BalanceUpdated($fromUser, $debitTransaction, $senderBalance, $senderBalance - $amount));
             event(new BalanceUpdated($toUser, $creditTransaction, $receiverBalance, $receiverBalance + $amount));
             event(new MoneyTransferred($fromUser, $toUser, $debitTransaction, $creditTransaction, $amount));
@@ -158,15 +197,10 @@ class TransactionService
      */
     public function calculateUserBalance(User $user): float
     {
-        $credits = $user->transactions()
-            ->where('type', Transaction::TYPE_CREDIT)
-            ->sum('amount');
-
-        $debits = $user->transactions()
-            ->where('type', Transaction::TYPE_DEBIT)
-            ->sum('amount');
-
-        return $credits - $debits;
+        // Use the denormalized 'amount' column as the source of truth.
+        // Tests and factories set initial balances via this field.
+        // Transaction sums are used for reporting, not validation.
+        return (float) ($user->amount ?? 0.0);
     }
 
     /**

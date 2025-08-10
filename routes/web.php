@@ -27,6 +27,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // User Management
     Route::resource('users', AdminUserController::class);
     Route::post('users/{user}/add-money', [AdminUserController::class, 'addMoney'])->name('users.add-money');
+    Route::post('users/{user}/remove-money', [AdminUserController::class, 'removeMoney'])->name('users.remove-money');
 
     // Order Management
     Route::resource('orders', AdminOrderController::class)->only(['index', 'show']);

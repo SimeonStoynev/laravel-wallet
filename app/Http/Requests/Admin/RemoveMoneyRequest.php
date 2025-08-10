@@ -3,9 +3,8 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
-use App\Models\Order;
 
-class RefundOrderRequest extends FormRequest
+class RemoveMoneyRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,7 +23,8 @@ class RefundOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'amount' => 'nullable|numeric|min:0.01',
+            'amount' => 'required|numeric|min:0.01|max:999999.99',
+            'description' => 'nullable|string|max:255',
         ];
     }
 
@@ -36,9 +36,11 @@ class RefundOrderRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'amount.numeric' => 'Refund amount must be a valid number.',
-            'amount.min' => 'Refund amount must be at least 0.01.',
-            'amount.max' => 'Refund amount cannot exceed the order amount.',
+            'amount.required' => 'Amount is required.',
+            'amount.numeric' => 'Amount must be a valid number.',
+            'amount.min' => 'Amount must be at least 0.01.',
+            'amount.max' => 'Amount cannot exceed 999,999.99.',
+            'description.max' => 'Description cannot exceed 255 characters.',
         ];
     }
 }

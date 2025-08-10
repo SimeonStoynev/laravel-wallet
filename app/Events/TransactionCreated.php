@@ -8,12 +8,20 @@ use Illuminate\Broadcasting\PrivateChannel;
 class TransactionCreated extends WalletEvent
 {
     /**
+     * Public property for test compatibility
+     */
+    public Transaction $transaction;
+
+    /**
      * Create a new event instance.
      *
      * @param array<string, mixed> $metadata
      */
     public function __construct(Transaction $transaction, array $metadata = [])
     {
+        // Expose transaction instance for direct access in tests
+        $this->transaction = $transaction;
+
         $eventData = [
             'transaction_id' => $transaction->id,
             'user_id' => $transaction->user_id,

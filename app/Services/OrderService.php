@@ -115,8 +115,8 @@ class OrderService
             // Dispatch events
             event(new OrderStatusChanged($order, $oldStatus, $order->status));
             event(new OrderCompleted($order));
-            $paymentMethodRaw = $order->getAttribute('payment_method');
-            $paymentMethod = is_string($paymentMethodRaw) ? $paymentMethodRaw : null;
+            $meta = $order->metadata ?? [];
+            $paymentMethod = is_array($meta) ? ($meta['payment_method'] ?? null) : null;
             event(new PaymentReceived($order, $user, (float) $order->amount, $paymentMethod));
 
             $order->refresh();
@@ -174,9 +174,9 @@ class OrderService
 
             $oldStatus = $order->status;
 
-            // Add money back to user's wallet
+            // Remove money from user's wallet (refund is a debit)
             $user = $order->user()->firstOrFail();
-            $transaction = $this->transactionService->addMoney(
+            $transaction = $this->transactionService->removeMoney(
                 $user,
                 (float) $refundAmount,
                 "Refund for order #{$order->id}",

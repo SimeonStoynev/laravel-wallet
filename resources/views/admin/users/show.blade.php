@@ -63,6 +63,25 @@
           </form>
         </div>
       </div>
+      <div class="card h-100 shadow-sm mt-3">
+        <div class="card-body">
+          <h5 class="card-title">Remove Money</h5>
+          <form method="POST" action="{{ route('admin.users.remove-money', $user) }}">
+            @csrf
+            <div class="form-row">
+              <div class="form-group col-sm-4">
+                <label>Amount</label>
+                <input type="number" step="0.01" min="0" class="form-control" name="amount" required>
+              </div>
+              <div class="form-group col-sm-8">
+                <label>Description</label>
+                <input class="form-control" name="description" placeholder="Optional">
+              </div>
+            </div>
+            <button class="btn btn-outline-danger" type="submit">Remove</button>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
 

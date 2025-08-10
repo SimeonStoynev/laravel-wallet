@@ -61,7 +61,6 @@ class Order extends Model
      */
     protected $dispatchesEvents = [
         'created' => OrderCreated::class,
-        'updated' => OrderStatusChanged::class,
     ];
 
     // Relationships

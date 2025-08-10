@@ -9,6 +9,14 @@ use Illuminate\Broadcasting\PrivateChannel;
 class BalanceUpdated extends WalletEvent
 {
     /**
+     * Public properties for test compatibility
+     */
+    public User $user;
+    public Transaction $transaction;
+    public float $previousBalance;
+    public float $newBalance;
+
+    /**
      * Create a new event instance.
      *
      * @param array<string, mixed> $metadata
@@ -20,6 +28,12 @@ class BalanceUpdated extends WalletEvent
         float $newBalance,
         array $metadata = []
     ) {
+        // Expose public fields as used by tests
+        $this->user = $user;
+        $this->transaction = $transaction;
+        $this->previousBalance = $previousBalance;
+        $this->newBalance = $newBalance;
+
         $eventData = [
             'user_id' => $user->id,
             'transaction_id' => $transaction->id,

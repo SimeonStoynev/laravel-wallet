@@ -33,12 +33,11 @@ class TransferMoneyRequest extends FormRequest
         $userId = auth()->id();
         /** @var \App\Models\User $user */
         $user = auth()->user();
-        $maxAmount = $this->transactionService->calculateUserBalance($user);
 
         return [
             'recipient_id' => 'required|exists:users,id|different:'.$userId,
-            'amount' => 'required|numeric|min:0.01|max:'.$maxAmount,
-            'description' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0.01',
+            'description' => 'nullable|string|max:255',
         ];
     }
 

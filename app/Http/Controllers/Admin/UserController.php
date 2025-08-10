@@ -9,6 +9,7 @@ use App\Services\TransactionService;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Http\Requests\Admin\AddMoneyRequest;
+use App\Http\Requests\Admin\RemoveMoneyRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -24,6 +25,45 @@ class UserController extends Controller
     {
         $this->userService = $userService;
         $this->transactionService = $transactionService;
+    }
+
+    /**
+     * Remove money from user's wallet
+     */
+    public function removeMoney(RemoveMoneyRequest $request, User $user): RedirectResponse|JsonResponse
+    {
+        try {
+            $validated = $request->validated();
+            $amount = $validated['amount'] ?? 0;
+            $description = $validated['description'] ?? '';
+
+            $transaction = $this->transactionService->removeMoney(
+                $user,
+                is_numeric($amount) ? (float) $amount : 0,
+                is_string($description) ? $description : '',
+                auth()->user()
+            );
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'message' => 'Money removed successfully',
+                    'transaction' => $transaction,
+                    'new_balance' => $this->userService->getUserBalance($user),
+                ]);
+            }
+
+            $amountDisplay = $validated['amount'] ?? 0;
+            $amountStr = is_scalar($amountDisplay) ? (string) $amountDisplay : '0';
+            return redirect()->route('admin.users.show', $user)
+                ->with('success', "Successfully removed {$amountStr} from user's wallet");
+        } catch (\Exception $e) {
+            if ($request->wantsJson()) {
+                return response()->json(['error' => $e->getMessage()], 400);
+            }
+
+            return redirect()->back()
+                ->with('error', $e->getMessage());
+        }
     }
 
     /**
