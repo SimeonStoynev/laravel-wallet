@@ -3,59 +3,70 @@
 <p align="center">
 <a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
-
-## About Laravel
-
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+  <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+  <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+ </p>
+ 
+ ## Laravel Wallet
+ 
+ I built a Dockerized Laravel 12 application with a React + Vite frontend.
+ - I use React for Login and Register.
+ - I use Blade for the Admin area.
+ - The app follows an event‑driven architecture for scalability and flexibility.
+ - Code style targets PHP 8.4.
+ - Core functionality is covered by tests.
+ 
+ ### Quick start
+ ```bash
+ chmod +x setup.sh
+ ./setup.sh
+ open http://localhost:8000
+ ```
+ This sets up everything with Docker. No local PHP/Node needed.
+ 
+ ### What setup.sh does
+ - Builds and starts containers via `docker compose up -d --build` from `compose.yaml`.
+ - Creates `.env` (if missing) and normalizes: `APP_URL`, `DB_*`, `REDIS_HOST=redis`, `SESSION_DRIVER=database`.
+ - Generates app key, ensures the sessions table exists.
+ - Waits until MySQL is reachable, then runs migrations.
+   - Seeds only if the database is empty (no users yet).
+ - Creates the storage symlink and fixes permissions.
+ - Installs frontend deps with `npm ci` (or `npm install`) inside the container.
+ - Removes any stale `public/hot` and builds production assets with Vite.
+ 
+ ### Frontend
+ - Vite entrypoint: `resources/js/app.jsx`.
+ - Blade root view: `resources/views/react.blade.php` with `<div id="root"></div>`.
+ - Production assets are built into `public/build`.
+ 
+ ### Tooling and code quality
+ - Static analysis: PHPStan (see `phpstan.neon`). I have considered all warnings/issues.
+ - Code style: Laravel Pint (see `pint.json`), PSR‑12 ruleset.
+ - PHP style: PHP 8.4 features where appropriate.
+ 
+ ### Wallet Task (reviewer commands)
+ - Run static analysis
+ ```bash
+ docker compose exec php ./vendor/bin/phpstan analyse
+ ```
+ - Fix formatting issues
+ ```bash
+ docker compose exec php ./vendor/bin/pint
+ ```
+ - Check code formatting (recommended first step)
+ ```bash
+ docker compose exec php ./vendor/bin/pint --test
+ ```
+ - Run tests
+ ```bash
+ docker compose exec php php artisan test
+ ```
+ 
+ ### FAQ
+ - Will `compose.yaml` work right after cloning?
+   - Yes, it will start the containers (`php`, `nginx`, `mysql`, `redis`).
+   - The application still needs provisioning (composer install, key, migrations, asset build). Run `./setup.sh` to do it automatically.
+ 
+  ## License
+  
+  The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

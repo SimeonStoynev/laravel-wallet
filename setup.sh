@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 echo "🚀 Laravel 12 + PHP 8.4 Docker Setup"
 echo "====================================="
@@ -21,9 +21,7 @@ echo "✅ Docker and Docker Compose are available"
 echo "🏗️  Building and starting containers..."
 docker compose up -d --build
 
-# Wait for containers
-echo "⏳ Waiting for containers to be ready..."
-sleep 15
+# Note: We will check service readiness later right before running migrations
 
 # Install Laravel 12
 if [ ! -f "composer.json" ]; then
@@ -42,21 +40,115 @@ if [ ! -f ".env" ]; then
     cp .env.example .env
 fi
 
+# Normalize environment defaults for this docker setup
+echo "🧭 Normalizing .env values (APP_URL, REDIS_HOST, DB_*, SESSION_DRIVER)..."
+# Use GNU sed inside the php container to avoid macOS/BSD sed -i differences
+docker compose exec -T php bash -lc "\
+  if [ -f .env ]; then \
+    if grep -q '^APP_URL=' .env; then \
+      sed -i 's|^APP_URL=.*|APP_URL=http://localhost:8000|' .env; \
+    else \
+      echo 'APP_URL=http://localhost:8000' >> .env; \
+    fi; \
+    if grep -q '^REDIS_HOST=' .env; then \
+      sed -i 's|^REDIS_HOST=.*|REDIS_HOST=redis|' .env; \
+    else \
+      echo 'REDIS_HOST=redis' >> .env; \
+    fi; \
+    if grep -q '^DB_HOST=' .env; then \
+      sed -i 's|^DB_HOST=.*|DB_HOST=mysql|' .env; \
+    else \
+      echo 'DB_HOST=mysql' >> .env; \
+    fi; \
+    if grep -q '^DB_PORT=' .env; then \
+      sed -i 's|^DB_PORT=.*|DB_PORT=3306|' .env; \
+    else \
+      echo 'DB_PORT=3306' >> .env; \
+    fi; \
+    if grep -q '^DB_DATABASE=' .env; then \
+      sed -i 's|^DB_DATABASE=.*|DB_DATABASE=laravel_wallet|' .env; \
+    else \
+      echo 'DB_DATABASE=laravel_wallet' >> .env; \
+    fi; \
+    if grep -q '^DB_USERNAME=' .env; then \
+      sed -i 's|^DB_USERNAME=.*|DB_USERNAME=laravel|' .env; \
+    else \
+      echo 'DB_USERNAME=laravel' >> .env; \
+    fi; \
+    if grep -q '^DB_PASSWORD=' .env; then \
+      sed -i 's|^DB_PASSWORD=.*|DB_PASSWORD=laravelpassword|' .env; \
+    else \
+      echo 'DB_PASSWORD=laravelpassword' >> .env; \
+    fi; \
+    if grep -q '^SESSION_DRIVER=' .env; then \
+      sed -i 's|^SESSION_DRIVER=.*|SESSION_DRIVER=database|' .env; \
+    else \
+      echo 'SESSION_DRIVER=database' >> .env; \
+    fi; \
+  fi"
+
 # Generate key and run migrations
 echo "🔑 Generating application key..."
 docker compose exec -T php php artisan key:generate
 
-echo "🗄️  Running database migrations..."
-docker compose exec -T php php artisan migrate
+echo "🧾 Preparing sessions table (SESSION_DRIVER=database) if missing..."
+# Check and possibly create inside the container for consistent tooling
+docker compose exec -T php bash -lc '
+  if ls database/migrations/*create_sessions_table*.php >/dev/null 2>&1; then
+    echo "   Sessions table migration already exists. Skipping generation."
+  else
+    php artisan session:table || echo "   session:table reported it already exists; continuing."
+  fi
+'
+
+echo "⏳ Waiting for database to be ready..."
+# Retry until DB is reachable via artisan (up to ~60s)
+ATTEMPTS=30
+for i in $(seq 1 $ATTEMPTS); do
+  if docker compose exec -T php php artisan migrate:status > /dev/null 2>&1; then
+    echo "✅ Database is reachable."
+    break
+  fi
+  echo "   Waiting... ($i/$ATTEMPTS)"
+  sleep 2
+done
+
+if ! docker compose exec -T php php artisan migrate:status > /dev/null 2>&1; then
+  echo "❌ Database is not reachable after waiting. Check MySQL container logs and credentials in .env."
+  exit 1
+fi
+
+echo "🗄️  Running database migrations (with seed if database is empty)..."
+# Determine if we should seed: check if any users already exist
+SHOULD_SEED=$(docker compose exec -T php bash -lc "\
+  php -r 'require \"vendor/autoload.php\"; \$app = require \"bootstrap/app.php\"; \$app->make(\\Illuminate\\Contracts\\Console\\Kernel::class); echo \\App\\Models\\User::query()->exists() ? \"0\" : \"1\";'" 2>/dev/null || echo "0")
+
+if [ "$SHOULD_SEED" = "1" ]; then
+  echo "   No users found. Seeding sample data..."
+  docker compose exec -T php php artisan migrate --seed
+else
+  echo "   Data detected. Running migrations without seeding..."
+  docker compose exec -T php php artisan migrate
+fi
+
+echo "🔗 Creating storage symlink (force to be idempotent)..."
+docker compose exec -T php php artisan storage:link --force
 
 # Fix permissions if necessary (create .npm directory if missing and chown)
-docker compose exec php bash -c "mkdir -p /var/www/html/.npm || true && chown -R www-data:www-data /var/www/html/.npm || true"
+docker compose exec -T php bash -lc "\
+  mkdir -p /var/www/html/.npm || true && \
+  chown -R www-data:www-data /var/www/html/.npm || true && \
+  chown -R www-data:www-data storage bootstrap/cache || true"
 
 # Install frontend dependencies
-docker compose exec php npm install
+echo "📥 Installing frontend dependencies (npm ci if lockfile exists)..."
+docker compose exec -T -e npm_config_cache=/var/www/html/.npm php bash -lc "if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi"
 
 # Build frontend assets
-docker compose exec php npm run build
+echo "🧱 Building frontend assets..."
+# Ensure we are not proxying to Vite dev server
+docker compose exec -T php bash -lc "rm -f public/hot"
+docker compose exec -T -e npm_config_cache=/var/www/html/.npm php npm run build
 
 echo ""
 echo "🎉 Setup complete!"

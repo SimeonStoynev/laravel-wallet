@@ -13,11 +13,12 @@ export default defineConfig({
         },
     },
     plugins: [
+        // React plugin should come first so JSX in .js files is transformed
+        react(),
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: ['resources/css/app.css', 'resources/js/app.jsx'],
             refresh: true,
         }),
         tailwindcss(),
-        react(),
     ],
 });
