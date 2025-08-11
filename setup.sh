@@ -101,20 +101,27 @@ docker compose exec -T php bash -lc '
   fi
 '
 
-echo "⏳ Waiting for database to be ready..."
-# Retry until DB is reachable via artisan (up to ~60s)
-ATTEMPTS=30
+echo "⏳ Waiting for MySQL to be ready (ping)..."
+# Use mysqladmin ping against the mysql container; allow up to ~120s
+ATTEMPTS=60
 for i in $(seq 1 $ATTEMPTS); do
-  if docker compose exec -T php php artisan migrate:status > /dev/null 2>&1; then
-    echo "✅ Database is reachable."
+  if docker compose exec -T mysql mysqladmin ping -h 127.0.0.1 -prootpassword --silent; then
+    echo "✅ MySQL is accepting connections."
     break
   fi
   echo "   Waiting... ($i/$ATTEMPTS)"
   sleep 2
 done
 
-if ! docker compose exec -T php php artisan migrate:status > /dev/null 2>&1; then
-  echo "❌ Database is not reachable after waiting. Check MySQL container logs and credentials in .env."
+if ! docker compose exec -T mysql mysqladmin ping -h 127.0.0.1 -prootpassword --silent; then
+  echo "❌ MySQL is not reachable after waiting. Check logs: 'docker compose logs mysql' and verify ports/volume."
+  exit 1
+fi
+
+echo "🔎 Verifying application DB credentials..."
+if ! docker compose exec -T mysql sh -lc "mysql -u laravel -plaravelpassword -e 'SELECT 1' laravel_wallet" >/dev/null 2>&1; then
+  echo "❌ App DB credentials failed. The named volume may contain old credentials/users."
+  echo "   Fix: run 'docker compose down -v' to reset the DB volume, then re-run ./setup.sh"
   exit 1
 fi
 
