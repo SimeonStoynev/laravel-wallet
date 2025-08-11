@@ -20,6 +20,9 @@ class OrderServiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * @return array{0: OrderService, 1: TransactionService}
+     */
     protected function makeServices(): array
     {
         $tx = new TransactionService();

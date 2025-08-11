@@ -144,13 +144,14 @@ class OrderController extends Controller
             // Lock the row and read inside a transaction to avoid stale reads
             $lockedAmount = DB::transaction(function () use ($user) {
                 $locked = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
-                return (float) ($locked->amount ?? 0.0);
+                return (float) $locked->amount;
             });
             // Inspect various views of balance to diagnose test environment behavior
             $eloquentAmount = (float) ($user->amount ?? 0.0);
             $rawRead = DB::table('users')->where('id', $user->id)->value('amount');
             $rawWrite = DB::table('users')->useWritePdo()->where('id', $user->id)->value('amount');
-            $currentBalance = (float) ($lockedAmount ?? $rawWrite ?? $rawRead ?? $eloquentAmount);
+            // Prefer the locked amount which is always available from the transaction above
+            $currentBalance = (float) $lockedAmount;
             Log::info('refund.balance', [
                 'order_id' => $order->id,
                 'user_id' => $user->id,

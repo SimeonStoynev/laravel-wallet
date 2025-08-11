@@ -19,7 +19,8 @@ class AuthenticatedSessionController extends Controller
     public function create(): ViewContract
     {
         /** @var view-string $view */
-        $view = 'auth.login';
+        // Serve the React SPA shell; the frontend handles the /login route
+        $view = 'react';
         return view($view);
     }
 

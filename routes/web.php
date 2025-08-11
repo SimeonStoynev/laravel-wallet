@@ -68,6 +68,7 @@ Route::middleware('auth')->get('/dashboard', function () {
         'admin'    => 'admin',
         'merchant' => 'merchant',
     ];
-    $target = $map[$role] ?? 'merchant';
+    // Role defaults to 'merchant' above, so the offset always exists
+    $target = $map[$role];
     return redirect()->route($target.'.dashboard');
 })->name('dashboard');

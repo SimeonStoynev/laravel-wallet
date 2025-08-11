@@ -115,8 +115,12 @@ class OrderService
             // Dispatch events
             event(new OrderStatusChanged($order, $oldStatus, $order->status));
             event(new OrderCompleted($order));
+            // Metadata is array|null per model casting; coalesce ensures array
             $meta = $order->metadata ?? [];
-            $paymentMethod = is_array($meta) ? ($meta['payment_method'] ?? null) : null;
+            $paymentMethod = $meta['payment_method'] ?? null;
+            if (!is_string($paymentMethod)) {
+                $paymentMethod = null;
+            }
             event(new PaymentReceived($order, $user, (float) $order->amount, $paymentMethod));
 
             $order->refresh();
