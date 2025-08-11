@@ -11,10 +11,12 @@
  ### Quick start
  ```bash
  chmod +x setup.sh
- ./setup.sh
+ bash ./setup.sh
  open http://localhost:8000
  ```
  This sets up everything with Docker. No local PHP/Node needed.
+ 
+ Note: Run the script with Bash. If `http://localhost:8000` is not reachable right after the first run, simply rerun `bash ./setup.sh`. Occasionally container startup can delay a step; the script is idempotent and will complete any pending provisioning.
  
  ### What setup.sh does
  - Builds and starts containers via `docker compose up -d --build` from `compose.yaml`.
@@ -30,6 +32,10 @@
  - Vite entrypoint: `resources/js/app.jsx`.
  - Blade root view: `resources/views/react.blade.php` with `<div id="root"></div>`.
  - Production assets are built into `public/build`.
+ 
+ ### Seeded accounts
+ - Admin: `admin@wallet.com` / `password`
+ - Merchant: `merchant@wallet.com` / `password`
  
  ### Tooling and code quality
  - Static analysis: PHPStan (see `phpstan.neon`). I have considered all warnings/issues.
