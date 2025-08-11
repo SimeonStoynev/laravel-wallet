@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\Customer;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Services\TransactionService;
-use App\Http\Requests\Customer\TransferMoneyRequest;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Contracts\View\View as ViewContract;
-use App\Models\User as UserModel;
 use Exception;
+use Illuminate\Http\Request;
+use App\Models\User as UserModel;
+use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use App\Services\TransactionService;
+use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\Customer\TransferMoneyRequest;
+use Illuminate\Contracts\View\View as ViewContract;
 
 class TransactionController extends Controller
 {
@@ -80,6 +79,18 @@ class TransactionController extends Controller
             $recipient = UserModel::query()->whereKey($recipientId)->firstOrFail();
             $amount = isset($validated['amount']) && is_numeric($validated['amount']) ? (float) $validated['amount'] : 0.0;
             $description = isset($validated['description']) && is_string($validated['description']) ? $validated['description'] : '';
+
+            // Extra safety: block transfer when no funds or insufficient funds
+            $currentBalance = $this->transactionService->calculateUserBalance($fromUser);
+            if ($currentBalance <= 0 || $amount > $currentBalance) {
+                $message = $currentBalance <= 0
+                    ? 'You do not have enough balance to make a transfer.'
+                    : 'Insufficient balance for this transfer.';
+                if ($request->wantsJson()) {
+                    return response()->json(['error' => $message], 400);
+                }
+                return redirect()->back()->withInput()->with('error', $message);
+            }
 
             $transactions = $this->transactionService->transferMoney(
                 $fromUser,

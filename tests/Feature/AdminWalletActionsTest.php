@@ -73,4 +73,60 @@ class AdminWalletActionsTest extends TestCase
         Event::assertNotDispatched(TransactionCreated::class);
         Event::assertNotDispatched(BalanceUpdated::class);
     }
+
+    public function test_admin_add_money_creates_credit_and_updates_balance(): void
+    {
+        Event::fake([TransactionCreated::class, BalanceUpdated::class]);
+
+        $admin = $this->admin();
+        $user = User::factory()->withBalance(25.00)->create();
+
+        $this->actingAs($admin)
+            ->post(route('admin.users.add-money', $user), [
+                'amount' => 75.00,
+                'description' => 'Manual top-up',
+            ])
+            ->assertRedirect(route('admin.users.show', $user))
+            ->assertSessionHas('success');
+
+        $user->refresh();
+        $this->assertSame(100.00, (float) $user->amount);
+
+        $this->assertDatabaseHas('transactions', [
+            'user_id' => $user->id,
+            'type' => Transaction::TYPE_CREDIT,
+            'amount' => 75.00,
+        ]);
+
+        Event::assertDispatched(TransactionCreated::class);
+        Event::assertDispatched(BalanceUpdated::class);
+    }
+
+    public function test_admin_add_money_allows_optional_description(): void
+    {
+        Event::fake([TransactionCreated::class, BalanceUpdated::class]);
+
+        $admin = $this->admin();
+        $user = User::factory()->withBalance(10.00)->create();
+
+        $this->actingAs($admin)
+            ->post(route('admin.users.add-money', $user), [
+                'amount' => 5.00,
+                // no description
+            ])
+            ->assertRedirect(route('admin.users.show', $user))
+            ->assertSessionHas('success');
+
+        $user->refresh();
+        $this->assertSame(15.00, (float) $user->amount);
+
+        $this->assertDatabaseHas('transactions', [
+            'user_id' => $user->id,
+            'type' => Transaction::TYPE_CREDIT,
+            'amount' => 5.00,
+        ]);
+
+        Event::assertDispatched(TransactionCreated::class);
+        Event::assertDispatched(BalanceUpdated::class);
+    }
 }

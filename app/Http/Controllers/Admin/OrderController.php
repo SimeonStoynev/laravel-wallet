@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\Order;
+use Exception;
+use Throwable;
 use App\Models\User;
+use App\Models\Order;
+use Illuminate\Http\Request;
 use App\Services\OrderService;
-use App\Services\TransactionService;
-use App\Http\Requests\Admin\RefundOrderRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Exception;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+use App\Services\TransactionService;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
+use App\Http\Requests\Admin\RefundOrderRequest;
 use Illuminate\Contracts\View\View as ViewContract;
 
 class OrderController extends Controller
@@ -88,7 +88,7 @@ class OrderController extends Controller
 
             return redirect()->route('admin.orders.show', $order)
                 ->with('success', 'Order processed successfully');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if (request()->wantsJson()) {
                 return response()->json(['error' => $e->getMessage()], 400);
             }
@@ -178,7 +178,7 @@ class OrderController extends Controller
 
             return redirect()->route('admin.orders.show', $order)
                 ->with('success', 'Order refunded successfully');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('refund.exception', ['order_id' => $order->id, 'message' => $e->getMessage()]);
             if ($request->wantsJson()) {
                 return response()->json(['error' => $e->getMessage()], 400);

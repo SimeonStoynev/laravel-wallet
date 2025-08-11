@@ -233,7 +233,8 @@ class TransactionService
         return [
             'total_credits' => $totalCredits,
             'total_debits' => $totalDebits,
-            'current_balance' => $totalCredits - $totalDebits,
+            // Use denormalized amount as source of truth for current balance to avoid drift
+            'current_balance' => $this->calculateUserBalance($user),
             'transaction_count' => $transactionCount,
             'last_transaction' => $lastTransaction,
         ];

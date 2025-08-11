@@ -48,7 +48,8 @@
       <div class="col-md-3 mb-3">
         <div class="card shadow-sm"><div class="card-body">
           <div class="text-muted small">Current Balance</div>
-          <div class="h5 mb-0">${{ number_format((float)($stats['current_balance'] ?? 0), 2) }}</div>
+          @php $__balance = (float)($stats['current_balance'] ?? 0); @endphp
+          <div class="h5 mb-0">{{ $__balance < 0 ? '-' : '' }}${{ number_format(abs($__balance), 2) }}</div>
         </div></div>
       </div>
       <div class="col-md-3 mb-3">

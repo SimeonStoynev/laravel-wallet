@@ -47,38 +47,36 @@
       <div class="card h-100 shadow-sm">
         <div class="card-body">
           <h5 class="card-title">Add Money</h5>
-          <form method="POST" action="{{ route('admin.users.add-money', $user) }}">
+          <form method="POST" action="{{ route('admin.users.add-money', $user) }}" class="mb-3">
             @csrf
             <div class="form-row">
               <div class="form-group col-sm-4">
                 <label>Amount</label>
-                <input type="number" step="0.01" min="0" class="form-control" name="amount" required>
+                <input type="number" step="0.01" min="0.01" class="form-control" name="amount" required>
               </div>
               <div class="form-group col-sm-8">
-                <label>Description</label>
+                <label>Description <span class="text-muted small">(optional)</span></label>
                 <input class="form-control" name="description" placeholder="Optional">
               </div>
             </div>
-            <button class="btn btn-primary" type="submit">Add</button>
+            <button class="btn btn-primary" type="submit">Add Credit</button>
           </form>
-        </div>
-      </div>
-      <div class="card h-100 shadow-sm mt-3">
-        <div class="card-body">
-          <h5 class="card-title">Remove Money</h5>
+
+          <hr>
+          <h5 class="card-title mt-3">Debit Money</h5>
           <form method="POST" action="{{ route('admin.users.remove-money', $user) }}">
             @csrf
             <div class="form-row">
               <div class="form-group col-sm-4">
                 <label>Amount</label>
-                <input type="number" step="0.01" min="0" class="form-control" name="amount" required>
+                <input type="number" step="0.01" min="0.01" class="form-control" name="amount" required>
               </div>
               <div class="form-group col-sm-8">
-                <label>Description</label>
+                <label>Description <span class="text-muted small">(optional)</span></label>
                 <input class="form-control" name="description" placeholder="Optional">
               </div>
             </div>
-            <button class="btn btn-outline-danger" type="submit">Remove</button>
+            <button class="btn btn-outline-danger" type="submit">Create Debit</button>
           </form>
         </div>
       </div>

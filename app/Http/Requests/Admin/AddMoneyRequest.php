@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\ValidationRule;
 
 class AddMoneyRequest extends FormRequest
 {
@@ -18,13 +19,13 @@ class AddMoneyRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array|string>
      */
     public function rules(): array
     {
         return [
             'amount' => 'required|numeric|min:0.01|max:999999.99',
-            'description' => 'required|string|max:255',
+            'description' => 'nullable|string|max:255',
         ];
     }
 
@@ -40,7 +41,6 @@ class AddMoneyRequest extends FormRequest
             'amount.numeric' => 'Amount must be a valid number.',
             'amount.min' => 'Amount must be at least 0.01.',
             'amount.max' => 'Amount cannot exceed 999,999.99.',
-            'description.required' => 'Please provide a description for this transaction.',
             'description.max' => 'Description cannot exceed 255 characters.',
         ];
     }

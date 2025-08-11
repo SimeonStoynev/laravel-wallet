@@ -9,9 +9,11 @@ use Illuminate\Support\Facades\Event;
 // Wallet Events (active)
 use App\Events\PaymentReceived;
 use App\Events\MoneyTransferred;
+use App\Events\BalanceUpdated;
 // Wallet Listeners (active)
 use App\Listeners\PaymentReceivedListener;
 use App\Listeners\MoneyTransferredListener;
+use App\Listeners\StoreWalletEvent;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -31,6 +33,11 @@ class EventServiceProvider extends ServiceProvider
 
         MoneyTransferred::class => [
             MoneyTransferredListener::class,
+            StoreWalletEvent::class,
+        ],
+
+        BalanceUpdated::class => [
+            StoreWalletEvent::class,
         ],
     ];
 

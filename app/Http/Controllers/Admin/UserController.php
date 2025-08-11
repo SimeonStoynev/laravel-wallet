@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use Exception;
 use App\Models\User;
+use Illuminate\Http\Request;
 use App\Services\UserService;
+use Illuminate\Http\JsonResponse;
 use App\Services\TransactionService;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\Admin\AddMoneyRequest;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
-use App\Http\Requests\Admin\AddMoneyRequest;
 use App\Http\Requests\Admin\RemoveMoneyRequest;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
 use Illuminate\Contracts\View\View as ViewContract;
 
 class UserController extends Controller
@@ -55,8 +55,8 @@ class UserController extends Controller
             $amountDisplay = $validated['amount'] ?? 0;
             $amountStr = is_scalar($amountDisplay) ? (string) $amountDisplay : '0';
             return redirect()->route('admin.users.show', $user)
-                ->with('success', "Successfully removed {$amountStr} from user's wallet");
-        } catch (\Exception $e) {
+                ->with('success', "Successfully removed $amountStr from user's wallet");
+        } catch (Exception $e) {
             if ($request->wantsJson()) {
                 return response()->json(['error' => $e->getMessage()], 400);
             }
@@ -196,7 +196,7 @@ class UserController extends Controller
 
             return redirect()->route('admin.users.index')
                 ->with('success', 'User deleted successfully');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if (request()->wantsJson()) {
                 return response()->json(['error' => $e->getMessage()], 400);
             }
@@ -234,8 +234,8 @@ class UserController extends Controller
             $amountDisplay = $validated['amount'] ?? 0;
             $amountStr = is_scalar($amountDisplay) ? (string) $amountDisplay : '0';
             return redirect()->route('admin.users.show', $user)
-                ->with('success', "Successfully added {$amountStr} to user's wallet");
-        } catch (\Exception $e) {
+                ->with('success', "Successfully added $amountStr to user's wallet");
+        } catch (Exception $e) {
             if ($request->wantsJson()) {
                 return response()->json(['error' => $e->getMessage()], 400);
             }

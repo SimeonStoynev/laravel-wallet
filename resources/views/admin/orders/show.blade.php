@@ -89,6 +89,8 @@
                 </div>
                 <button type="submit" class="btn btn-warning btn-sm mb-2">Refund</button>
               </form>
+            @elseif(in_array($order->status, [\App\Models\Order::STATUS_REFUNDED, \App\Models\Order::STATUS_CANCELLED], true))
+              <div class="text-muted small">No actions available.</div>
             @endif
             @if (session('success'))
               <div class="alert alert-success mt-3 mb-0">{{ session('success') }}</div>

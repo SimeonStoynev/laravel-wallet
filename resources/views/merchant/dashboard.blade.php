@@ -47,8 +47,9 @@
         <div class="card h-100 shadow-sm">
           <div class="card-body d-flex flex-column">
             <h6 class="text-muted">Balance</h6>
-            <p class="display-4 mb-3">—</p>
-            <a href="{{ route('customer.balance') }}" class="btn btn-primary mt-auto">View Balance</a>
+            @php $__balance = isset($balance) ? (float)$balance : (float)($stats['current_balance'] ?? 0); @endphp
+            <p class="h3 mb-3 mb-md-2">{{ $__balance < 0 ? '-' : '' }}${{ number_format(abs($__balance), 2) }}</p>
+            <a href="{{ route('customer.transactions.index') }}" class="btn btn-primary mt-auto">View Balance</a>
           </div>
         </div>
       </div>
@@ -79,10 +80,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="text-center mt-4">
-      <a href="/" class="btn btn-link">← Back to React App</a>
     </div>
   </main>
 

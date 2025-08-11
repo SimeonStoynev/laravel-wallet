@@ -2,8 +2,9 @@
 
 namespace App\Http\Requests\Customer;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Services\TransactionService;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\ValidationRule;
 
 class TransferMoneyRequest extends FormRequest
 {
@@ -26,16 +27,15 @@ class TransferMoneyRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array|string>
      */
     public function rules(): array
     {
         $userId = auth()->id();
-        /** @var \App\Models\User $user */
-        $user = auth()->user();
 
         return [
             'recipient_id' => 'required|exists:users,id|different:'.$userId,
+            // Let the controller enforce sufficient funds to ensure consistent session error key
             'amount' => 'required|numeric|min:0.01',
             'description' => 'nullable|string|max:255',
         ];
@@ -55,7 +55,6 @@ class TransferMoneyRequest extends FormRequest
             'amount.required' => 'Transfer amount is required.',
             'amount.numeric' => 'Amount must be a valid number.',
             'amount.min' => 'Transfer amount must be at least 0.01.',
-            'amount.max' => 'Insufficient balance for this transfer.',
             'description.required' => 'Please provide a description for this transfer.',
             'description.max' => 'Description cannot exceed 255 characters.',
         ];

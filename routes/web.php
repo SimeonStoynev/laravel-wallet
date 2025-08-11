@@ -46,17 +46,19 @@ Route::middleware(['auth', 'role:merchant'])->prefix('customer')->name('customer
 
     // Orders (Add Money)
     Route::resource('orders', CustomerOrderController::class)->only(['index', 'create', 'store', 'show']);
-    Route::post('orders/{order}/cancel', [CustomerOrderController::class, 'cancel'])->name('orders.cancel');
-    Route::post('orders/{order}/simulate-payment', [CustomerOrderController::class, 'simulatePayment'])->name('orders.simulate-payment');
 });
 
 // Merchant Routes
 Route::middleware(['auth', 'role:merchant'])->prefix('merchant')->name('merchant.')->group(function () {
     // Dashboard
-    Route::get('/dashboard', function () {
+    Route::get('/dashboard', function (\App\Services\TransactionService $transactionService) {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $balance = $transactionService->calculateUserBalance($user);
+        $stats = $transactionService->getUserTransactionStats($user);
         /** @var view-string $view */
         $view = 'merchant.dashboard';
-        return view($view);
+        return view($view, compact('balance', 'stats'));
     })->name('dashboard');
 });
 

@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Customer;
 
-use App\Http\Controllers\Controller;
-use App\Services\OrderService;
-use App\Http\Requests\Customer\CreateOrderRequest;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Contracts\View\View as ViewContract;
-use App\Models\User;
 use Exception;
+use App\Models\User;
+use Illuminate\Http\Request;
+use App\Services\OrderService;
+use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\Customer\CreateOrderRequest;
+use Illuminate\Contracts\View\View as ViewContract;
 
 class OrderController extends Controller
 {
@@ -107,7 +107,7 @@ class OrderController extends Controller
             }
 
             return redirect()->route('customer.orders.show', $order)
-                ->with('success', 'Order created successfully. Please complete payment to add money to your wallet.');
+                ->with('success', 'Order received and pending payment. An admin will process and complete this order.');
         } catch (Exception $e) {
             if ($request->wantsJson()) {
                 return response()->json(['error' => $e->getMessage()], 400);
@@ -137,66 +137,5 @@ class OrderController extends Controller
         return view($view, compact('order'));
     }
 
-    /**
-     * Cancel an order
-     */
-    public function cancel(int $id): RedirectResponse|JsonResponse
-    {
-        try {
-            /** @var User $user */
-            $user = auth()->user();
-            $order = $user->orders()->whereKey($id)->firstOrFail();
-
-            $order = $this->orderService->cancelOrder($order);
-
-            if (request()->wantsJson()) {
-                return response()->json([
-                    'message' => 'Order cancelled successfully',
-                    'order' => $order,
-                ]);
-            }
-
-            return redirect()->route('customer.orders.index')
-                ->with('success', 'Order cancelled successfully');
-        } catch (Exception $e) {
-            if (request()->wantsJson()) {
-                return response()->json(['error' => $e->getMessage()], 400);
-            }
-
-            return redirect()->back()
-                ->with('error', $e->getMessage());
-        }
-    }
-
-    /**
-     * Simulate payment completion (for demo purposes)
-     */
-    public function simulatePayment(int $id): RedirectResponse|JsonResponse
-    {
-        try {
-            /** @var User $user */
-            $user = auth()->user();
-            $order = $user->orders()->whereKey($id)->firstOrFail();
-
-            // In production, this would be handled by payment gateway callback
-            $order = $this->orderService->processOrder($order);
-
-            if (request()->wantsJson()) {
-                return response()->json([
-                    'message' => 'Payment successful. Money added to wallet.',
-                    'order' => $order,
-                ]);
-            }
-
-            return redirect()->route('customer.orders.show', $order)
-                ->with('success', 'Payment successful! Money has been added to your wallet.');
-        } catch (Exception $e) {
-            if (request()->wantsJson()) {
-                return response()->json(['error' => $e->getMessage()], 400);
-            }
-
-            return redirect()->back()
-                ->with('error', $e->getMessage());
-        }
-    }
+    // Note: Order status transitions (process, cancel, refund) are admin-only.
 }

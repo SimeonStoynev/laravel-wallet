@@ -35,6 +35,11 @@ class TransactionFactory extends Factory
             'description' => fake()->optional()->sentence(),
             'reference_type' => fake()->optional()->randomElement([Order::class, null]),
             'reference_id' => fake()->optional()->numberBetween(1, 1000),
+            'metadata' => fake()->optional()->randomElement([
+                ['initiator' => 'admin_panel', 'reason' => 'manual_adjustment'],
+                ['initiator' => 'system', 'job' => 'order_settlement'],
+                ['initiator' => 'api', 'client' => 'integration_x'],
+            ]),
             'balance_before' => $balanceBefore,
             'balance_after' => $balanceAfter,
         ];
@@ -141,6 +146,18 @@ class TransactionFactory extends Factory
             'reference_type' => Order::class,
             'reference_id' => $order->id,
             'description' => "Transaction for order #{$order->id}",
+        ]);
+    }
+
+    /**
+     * Indicate that the transaction should have specific metadata.
+     *
+     * @param array<string, mixed> $metadata
+     */
+    public function withMetadata(array $metadata): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'metadata' => $metadata,
         ]);
     }
 

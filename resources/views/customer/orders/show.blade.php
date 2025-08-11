@@ -105,16 +105,11 @@
       <div class="col-lg-4 mb-3">
         <div class="card shadow-sm">
           <div class="card-body">
-            <h6 class="text-muted">Actions</h6>
+            <h6 class="text-muted">Status</h6>
             @if($order->status === 'pending_payment')
-              <form method="POST" action="{{ route('customer.orders.simulate-payment', $order) }}" class="mb-2">
-                @csrf
-                <button type="submit" class="btn btn-success btn-block">Simulate Payment</button>
-              </form>
-              <form method="POST" action="{{ route('customer.orders.cancel', $order) }}">
-                @csrf
-                <button type="submit" class="btn btn-outline-danger btn-block">Cancel Order</button>
-              </form>
+              <div class="alert alert-info mb-2">
+                Order received and pending payment. An admin will process and complete this order.
+              </div>
             @else
               <div class="text-muted small">No actions available for this status.</div>
             @endif
